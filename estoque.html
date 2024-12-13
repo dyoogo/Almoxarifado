@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estoque - Family Church</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Roboto+Slab:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #222;
+      color: #fff;
+      line-height: 1.6;
+    }
+
+    h1 {
+      text-align: center;
+      color: #f9f9f9;
+      margin-top: 3rem;
+      font-size: 2.5rem;
+      font-weight: 700;
+    }
+
+    #logo {
+      text-align: center;
+      margin-top: 2rem;
+    }
+
+    #logo img {
+      max-width: 200px;
+      border-radius: 50%;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .stock-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      justify-content: center;
+      padding: 2rem;
+      margin-top: 3rem;
+    }
+
+    .stock-item {
+      background-color: #444;
+      border-radius: 8px;
+      padding: 1.5rem;
+      width: 300px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .stock-item:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .stock-item h3 {
+      margin-top: 0;
+      color: #ff9f00;
+      font-size: 1.6rem;
+      font-family: 'Roboto Slab', serif;
+    }
+
+    .stock-item p {
+      margin: 0.5rem 0;
+      color: #ccc;
+    }
+
+    .stock-item strong {
+      color: #fff;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      font-size: 1.2rem;
+      color: #aaa;
+      padding: 1rem;
+      background-color: #333;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2rem;
+      }
+
+      .stock-container {
+        padding: 1.5rem;
+      }
+
+      .stock-item {
+        width: 100%;
+        max-width: 350px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.8rem;
+      }
+
+      #logo img {
+        max-width: 150px;
+      }
+
+      .stock-item {
+        width: 100%;
+        max-width: 320px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="logo">
+    <img src="logo.jpeg" alt="Logo da Family Church">
+  </div>
+  <h1>Estoque Disponível - Family Church</h1>
+  <div id="stock-html" class="stock-container"></div>
+
+  <script>
+    async function fetchStock() {
+      try {
+        const response = await fetch("estoque.json");
+        if (response.ok) {
+          const stockData = await response.json();
+          updateStock(stockData);
+        } else {
+          console.error("Erro ao carregar o estoque.");
+        }
+      } catch (error) {
+        console.error("Erro ao buscar o estoque:", error);
+      }
+    }
+
+    function updateStock(data) {
+      const stockContainer = document.querySelector("#stock-html");
+      stockContainer.innerHTML = ""; // Limpa o conteúdo antes de carregar
+
+      if (data.length === 0) {
+        stockContainer.innerHTML = "<p>O estoque está vazio.</p>";
+        return;
+      }
+
+      data.forEach(item => {
+        const stockItem = document.createElement("div");
+        stockItem.classList.add("stock-item");
+
+        stockItem.innerHTML = `
+          <h3>${item.name}</h3>
+          <p><strong>Descrição:</strong> ${item.description}</p>
+          <p><strong>Quantidade:</strong> ${item.quantity}</p>
+        `;
+
+        stockContainer.appendChild(stockItem);
+      });
+    }
+
+    // Carrega o estoque ao abrir a página
+    fetchStock();
+  </script>
+
+  <footer>
+    <p>&copy; 2024 Family Church. Todos os direitos reservados.</p>
+  </footer>
+</body>
+</html>
