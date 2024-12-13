@@ -212,11 +212,16 @@
   {
     "name": "Painel Led 40W (6.500K)",
     "description": "painel de led de embutir",
-    "quantity": 15
+    "quantity": 14
   },
   {
     "name": "Fita isolante 10m X 19mm",
     "description": "...",
     "quantity": 4
+  },
+  {
+    "name": "Painel Led (40W) TTA",
+    "description": "Painel led tramontina (620mmx620mm",
+    "quantity": 12
   }
 ]
