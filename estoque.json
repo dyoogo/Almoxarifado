@@ -32,7 +32,7 @@
   {
     "name": "Fita - Crepe B",
     "description": "fita crepe branca",
-    "quantity": 2
+    "quantity": 10
   },
   {
     "name": "Tomadas",
@@ -132,7 +132,7 @@
   {
     "name": "Joelho de (25 x 3/4 com rosca)",
     "description": "Azul...",
-    "quantity": 14
+    "quantity": 10
   },
   {
     "name": "Joelho de (25 x 1/2 com rosca)",
@@ -142,7 +142,7 @@
   {
     "name": "TE Sold (25 MM)",
     "description": "...",
-    "quantity": 30
+    "quantity": 28
   },
   {
     "name": "TE Sold (25 x 3/4 com rosca)",
@@ -187,7 +187,7 @@
   {
     "name": "CAP (esgoto 50mm)",
     "description": "...",
-    "quantity": 4
+    "quantity": 3
   },
   {
     "name": "Caixa de Dreno ar condicionado",
@@ -197,17 +197,17 @@
   {
     "name": "Joelho Sold (25mm)",
     "description": "...",
-    "quantity": 1
+    "quantity": 23
   },
   {
     "name": "Thinner 5L",
     "description": "...",
-    "quantity": 2
+    "quantity": 1
   },
   {
     "name": "Disco de corte (Novo",
     "description": "...",
-    "quantity": 1
+    "quantity": 12
   },
   {
     "name": "Painel Led 40W (6.500K)",
@@ -222,6 +222,36 @@
   {
     "name": "Painel Led (40W) TTA",
     "description": "Painel led tramontina (620mmx620mm",
+    "quantity": 12
+  },
+  {
+    "name": "Disco Flap (Novo)",
+    "description": "disco flap novo",
+    "quantity": 10
+  },
+  {
+    "name": "Eletrodo",
+    "description": "eletrodo 2.5x 350mm caixa",
+    "quantity": 0
+  },
+  {
+    "name": "Balizador Garten 50cm",
+    "description": "preto fosco",
+    "quantity": 4
+  },
+  {
+    "name": "Espuma Expansiva",
+    "description": "espuma espansiva de poliuretano",
+    "quantity": 8
+  },
+  {
+    "name": "Zarpan (5L)",
+    "description": "...",
+    "quantity": 0
+  },
+  {
+    "name": "Luva de protecão",
+    "description": "...",
     "quantity": 12
   }
 ]
