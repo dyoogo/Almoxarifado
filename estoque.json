@@ -2,7 +2,7 @@
   {
     "name": "Pu - Cinza",
     "description": "Pu cor cinza",
-    "quantity": 34
+    "quantity": 21
   },
   {
     "name": "PU - Preto",
@@ -32,7 +32,7 @@
   {
     "name": "Fita - Crepe B",
     "description": "fita crepe branca",
-    "quantity": 10
+    "quantity": 11
   },
   {
     "name": "Tomadas",
@@ -132,7 +132,7 @@
   {
     "name": "Joelho de (25 x 3/4 com rosca)",
     "description": "Azul...",
-    "quantity": 10
+    "quantity": 9
   },
   {
     "name": "Joelho de (25 x 1/2 com rosca)",
@@ -142,7 +142,7 @@
   {
     "name": "TE Sold (25 MM)",
     "description": "...",
-    "quantity": 28
+    "quantity": 26
   },
   {
     "name": "TE Sold (25 x 3/4 com rosca)",
@@ -152,7 +152,7 @@
   {
     "name": "Luva Sold (25x25)",
     "description": "...",
-    "quantity": 19
+    "quantity": 18
   },
   {
     "name": "TE (50 - 25)",
@@ -192,12 +192,12 @@
   {
     "name": "Caixa de Dreno ar condicionado",
     "description": "....",
-    "quantity": 3
+    "quantity": 0
   },
   {
     "name": "Joelho Sold (25mm)",
     "description": "...",
-    "quantity": 23
+    "quantity": 21
   },
   {
     "name": "Thinner 5L",
@@ -207,7 +207,7 @@
   {
     "name": "Disco de corte (Novo",
     "description": "...",
-    "quantity": 12
+    "quantity": 17
   },
   {
     "name": "Painel Led 40W (6.500K)",
@@ -217,7 +217,7 @@
   {
     "name": "Fita isolante 10m X 19mm",
     "description": "...",
-    "quantity": 4
+    "quantity": 1
   },
   {
     "name": "Painel Led (40W) TTA",
@@ -252,6 +252,41 @@
   {
     "name": "Luva de protecão",
     "description": "...",
-    "quantity": 12
+    "quantity": 11
+  },
+  {
+    "name": "Painel Led Sob QD 60x60 40W",
+    "description": "...",
+    "quantity": 25
+  },
+  {
+    "name": "Primer (SIKA)",
+    "description": "...",
+    "quantity": 2
+  },
+  {
+    "name": "Pano de chão",
+    "description": "...",
+    "quantity": 1
+  },
+  {
+    "name": "Disco de corte starret 7",
+    "description": "...",
+    "quantity": 6
+  },
+  {
+    "name": "Luva 100mm",
+    "description": "luva esgoto multilit esgoto 100mm",
+    "quantity": 10
+  },
+  {
+    "name": "Joelho 100mm",
+    "description": "joelho multlit esg 45x100mm 90",
+    "quantity": 7
+  },
+  {
+    "name": "joelho Krona 100mm",
+    "description": "joelho esgoto KRONA 100mm 90",
+    "quantity": 10
   }
 ]
