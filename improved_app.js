@@ -80,16 +80,42 @@ document.querySelector("#add-tools-form").addEventListener("submit", event => {
   event.target.reset();
 });
 
+function getSearchTerm(selector) {
+  const input = document.querySelector(selector);
+  return input ? input.value.trim().toLowerCase() : "";
+}
+
 function renderStock() {
-  renderItems("Estoque", "#stock-table tbody");
-  
+  renderItems("Estoque", "#stock-table tbody", getSearchTerm("#stock-search"));
 }
 
 function renderTools() {
-  renderItems("Ferramentas", "#tools-table tbody");
+  renderItems("Ferramentas", "#tools-table tbody", getSearchTerm("#tools-search"));
 }
 
-function renderItems(category, tableSelector) {
+function matchesItemSearch(item, searchTerm) {
+  if (!searchTerm) return true;
+  return [item.name, item.description]
+    .filter(Boolean)
+    .some(value => value.toLowerCase().includes(searchTerm));
+}
+
+function matchesWithdrawalSearch(withdrawal, searchTerm) {
+  if (!searchTerm) return true;
+  const fields = [
+    withdrawal.personName,
+    withdrawal.itemName,
+    withdrawal.itemType,
+    withdrawal.status,
+    String(withdrawal.quantity),
+  ];
+
+  return fields
+    .filter(Boolean)
+    .some(value => value.toLowerCase().includes(searchTerm));
+}
+
+function renderItems(category, tableSelector, searchTerm = "") {
   const transaction = db.transaction(["items"], "readonly");
   const itemsStore = transaction.objectStore("items");
   const tableBody = document.querySelector(tableSelector);
@@ -99,7 +125,7 @@ function renderItems(category, tableSelector) {
     const cursor = event.target.result;
     if (cursor) {
       const item = cursor.value;
-      if (item.category === category) {
+      if (item.category === category && matchesItemSearch(item, searchTerm)) {
         const tr = document.createElement("tr");
         tr.dataset.id = item.id;
 
@@ -230,6 +256,7 @@ document.querySelector("#register-withdrawal-form").addEventListener("submit", e
 });
 
 function renderWithdrawals() {
+  const searchTerm = getSearchTerm("#withdrawals-search");
   const transaction = db.transaction(["withdrawals"], "readonly");
   const withdrawalsStore = transaction.objectStore("withdrawals");
   const tableBody = document.querySelector("#withdrawals-table tbody");
@@ -239,18 +266,53 @@ function renderWithdrawals() {
     const cursor = event.target.result;
     if (cursor) {
       const withdrawal = cursor.value;
+      if (!matchesWithdrawalSearch(withdrawal, searchTerm)) {
+        cursor.continue();
+        return;
+      }
       const tr = document.createElement("tr");
+      tr.dataset.id = withdrawal.id;
 
       // Define a cor de fundo com base no status
-      tr.style.backgroundColor = withdrawal.status === "Devolvido" ? "lightgreen" : "lightcoral";
+      let rowColor = "lightcoral";
+      if (withdrawal.status === "Devolvido") {
+        rowColor = "lightgreen";
+      } else if (withdrawal.status === "Parcialmente devolvido") {
+        rowColor = "moccasin";
+      }
+      tr.style.backgroundColor = rowColor;
 
       ["personName", "itemName", "itemType", "quantity", "date", "status"].forEach(key => {
         const td = document.createElement("td");
         td.textContent = withdrawal[key];
+        if (key === "quantity") {
+          td.classList.add("quantity-cell");
+        }
         tr.appendChild(td);
       });
 
       const tdAction = document.createElement("td");
+
+      const editButton = document.createElement("button");
+      editButton.textContent = "Editar";
+      editButton.classList.add("edit-withdrawal-btn");
+      editButton.addEventListener("click", () => {
+        const newQuantity = prompt(
+          "Digite a nova quantidade retirada:",
+          withdrawal.quantity
+        );
+
+        if (newQuantity !== null) {
+          const parsedQuantity = parseInt(newQuantity, 10);
+          if (!Number.isNaN(parsedQuantity) && parsedQuantity >= 0) {
+            const isDevolution = confirm("Esta edição refere-se a uma devolução?");
+            editWithdrawal(withdrawal.id, parsedQuantity, isDevolution);
+          } else {
+            alert("Informe um número válido para a quantidade.");
+          }
+        }
+      });
+      tdAction.appendChild(editButton);
 
       const returnButton = document.createElement("button");
       returnButton.textContent = withdrawal.status === "Devolvido" ? "Devolvido" : "Devolver";
@@ -275,25 +337,6 @@ function renderWithdrawals() {
     }
   };
 
-  transaction.oncomplete = () => {
-    attachEditWithdrawalButtons();
-  };
-}
-
-function attachEditWithdrawalButtons() {
-  const table = document.querySelector("#withdrawals-table");
-  table.querySelectorAll(".edit-withdrawal-btn").forEach(button => {
-    button.addEventListener("click", () => {
-      const row = button.closest("tr");
-      const withdrawalId = parseInt(row.dataset.id, 10);
-      const newQuantity = prompt("Digite a nova quantidade retirada:", row.querySelector(".quantity").textContent);
-
-      if (newQuantity !== null) {
-        const isDevolution = confirm("Esta edição refere-se a uma devolução?");
-        editWithdrawal(withdrawalId, parseInt(newQuantity, 10), isDevolution);
-      }
-    });
-  });
 }
 
 function editWithdrawal(withdrawalId, newQuantity, isDevolution) {
@@ -310,9 +353,36 @@ function editWithdrawal(withdrawalId, newQuantity, isDevolution) {
     itemRequest.onsuccess = () => {
       const item = itemRequest.result;
 
+      const originalQuantity = withdrawal.quantity;
+      const difference = originalQuantity - newQuantity;
+
       if (isDevolution) {
-        item.quantity += withdrawal.quantity; // Devolver a quantidade
-        withdrawal.status = "Devolvido";
+        if (newQuantity > originalQuantity) {
+          alert("A nova quantidade não pode ser maior que a retirada original.");
+          return;
+        }
+
+        const returnedAmount = originalQuantity - newQuantity;
+        if (returnedAmount > 0) {
+          item.quantity += returnedAmount;
+        }
+
+        withdrawal.status = returnedAmount === originalQuantity
+          ? "Devolvido"
+          : returnedAmount > 0
+            ? "Parcialmente devolvido"
+            : withdrawal.status;
+      } else if (difference !== 0) {
+        if (difference < 0) {
+          const additionalNeeded = Math.abs(difference);
+          if (item.quantity < additionalNeeded) {
+            alert("Quantidade indisponível para atualizar a retirada.");
+            return;
+          }
+          item.quantity -= additionalNeeded;
+        } else {
+          item.quantity += difference;
+        }
       }
 
       withdrawal.quantity = newQuantity;
@@ -364,8 +434,17 @@ function populateItemDropdown() {
   const transaction = db.transaction(["items"], "readonly");
   const itemsStore = transaction.objectStore("items");
   const dropdown = document.querySelector("#withdraw-item-name");
+  if (!dropdown) return;
+  const currentValue = dropdown.value;
 
   dropdown.innerHTML = ""; // Limpar opções anteriores
+
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = "Selecione um item";
+  placeholder.disabled = true;
+  placeholder.selected = true;
+  dropdown.appendChild(placeholder);
 
   itemsStore.openCursor().onsuccess = event => {
     const cursor = event.target.result;
@@ -378,9 +457,30 @@ function populateItemDropdown() {
       cursor.continue();
     }
   };
+
+  transaction.oncomplete = () => {
+    if (currentValue && dropdown.querySelector(`option[value="${currentValue}"]`)) {
+      dropdown.value = currentValue;
+    }
+  };
 }
 initDatabase();
 document.querySelector("#export-stock").addEventListener("click", () => saveStockAsJSON());
+
+const stockSearchInput = document.querySelector("#stock-search");
+if (stockSearchInput) {
+  stockSearchInput.addEventListener("input", () => renderStock());
+}
+
+const toolsSearchInput = document.querySelector("#tools-search");
+if (toolsSearchInput) {
+  toolsSearchInput.addEventListener("input", () => renderTools());
+}
+
+const withdrawalsSearchInput = document.querySelector("#withdrawals-search");
+if (withdrawalsSearchInput) {
+  withdrawalsSearchInput.addEventListener("input", () => renderWithdrawals());
+}
 
 function exportStock() {
   const transaction = db.transaction(["items"], "readonly");

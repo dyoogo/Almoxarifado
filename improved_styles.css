@@ -100,6 +100,24 @@ table {
   margin: 2em 0;
 }
 
+.table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1em;
+  align-items: center;
+  justify-content: space-between;
+  margin: 1em 0;
+}
+
+.table-actions .search-input {
+  flex: 1 1 240px;
+  min-width: 200px;
+}
+
+.table-actions button {
+  flex: 0 0 auto;
+}
+
 th, td {
   text-align: left;
   padding: 0.8em;
