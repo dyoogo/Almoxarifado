@@ -35,7 +35,15 @@
         <button type="submit">Cadastrar Estoque</button>
       </form>
       <h3>Itens do Estoque</h3>
-      <button id="export-stock">Exportar Estoque</button>
+      <div class="table-actions">
+        <input
+          type="search"
+          id="stock-search"
+          class="search-input"
+          placeholder="Buscar por nome ou descrição"
+        >
+        <button id="export-stock">Exportar Estoque</button>
+      </div>
       <table id="stock-table">
         <thead>
           <tr>
@@ -66,6 +74,14 @@
         <button type="submit">Cadastrar Ferramenta</button>
       </form>
       <h3>Ferramentas Cadastradas</h3>
+      <div class="table-actions">
+        <input
+          type="search"
+          id="tools-search"
+          class="search-input"
+          placeholder="Buscar por nome ou descrição"
+        >
+      </div>
       <table id="tools-table">
         <thead>
           <tr>
@@ -98,6 +114,14 @@
         <button type="submit">Registrar Retirada</button>
       </form>
       <h3>Itens Retirados</h3>
+      <div class="table-actions">
+        <input
+          type="search"
+          id="withdrawals-search"
+          class="search-input"
+          placeholder="Buscar por nome, item ou status"
+        >
+      </div>
       <table id="withdrawals-table">
         <thead>
           <tr>
