@@ -1,4 +1,57 @@
 let db;
+const filters = {
+  stock: "",
+  tools: "",
+  withdrawals: "",
+  withdrawalsPendingOnly: false,
+};
+
+const utils = window.AppUtils;
+
+if (!utils) {
+  throw new Error("AppUtils não foi carregado corretamente.");
+}
+
+const {
+  LOW_STOCK_THRESHOLD,
+  normalizeSearchTerm,
+  itemMatchesSearch,
+  isLowStock,
+  getItemStatus,
+  calculateInventorySummary,
+  withdrawalMatchesFilters,
+} = utils;
+
+const THEME_STORAGE_KEY = "almoxarifado-theme";
+
+const themeToggleButton = document.querySelector("#toggle-theme");
+
+function updateThemeToggleLabel() {
+  if (!themeToggleButton) return;
+  const isDark = document.body.classList.contains("dark-mode");
+  themeToggleButton.textContent = isDark ? "Modo Claro" : "Modo Escuro";
+}
+
+function applyStoredTheme() {
+  if (!themeToggleButton) return;
+  const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+  if (storedTheme === "dark") {
+    document.body.classList.add("dark-mode");
+  }
+  updateThemeToggleLabel();
+}
+
+function toggleTheme() {
+  document.body.classList.toggle("dark-mode");
+  const isDark = document.body.classList.contains("dark-mode");
+  localStorage.setItem(THEME_STORAGE_KEY, isDark ? "dark" : "light");
+  updateThemeToggleLabel();
+}
+
+if (themeToggleButton) {
+  themeToggleButton.addEventListener("click", toggleTheme);
+  applyStoredTheme();
+}
 
 function initDatabase() {
   const request = indexedDB.open("AlmoxarifadoDB", 1);
@@ -34,8 +87,10 @@ function switchTab(tabId) {
   allButtons.forEach(button => button.classList.remove("active"));
 
   document.getElementById(tabId).classList.add("active");
-  const button = Array.from(allButtons).find(button => button.dataset.tab === tabId);
-  button.classList.add("active");
+  const button = Array.from(allButtons).find(currentButton => currentButton.dataset.tab === tabId);
+  if (button) {
+    button.classList.add("active");
+  }
 }
 
 document.querySelectorAll(".tab-button").forEach(button => {
@@ -44,15 +99,69 @@ document.querySelectorAll(".tab-button").forEach(button => {
   });
 });
 
-function addItem(category, name, description, quantity) {
+const stockSearchInput = document.querySelector("#stock-search");
+if (stockSearchInput) {
+  stockSearchInput.addEventListener("input", event => {
+    filters.stock = normalizeSearchTerm(event.target.value);
+    renderStock();
+  });
+}
+
+const toolsSearchInput = document.querySelector("#tools-search");
+if (toolsSearchInput) {
+  toolsSearchInput.addEventListener("input", event => {
+    filters.tools = normalizeSearchTerm(event.target.value);
+    renderTools();
+  });
+}
+
+const withdrawalsSearchInput = document.querySelector("#withdrawals-search");
+if (withdrawalsSearchInput) {
+  withdrawalsSearchInput.addEventListener("input", event => {
+    filters.withdrawals = normalizeSearchTerm(event.target.value);
+    renderWithdrawals();
+  });
+}
+
+const withdrawalsPendingCheckbox = document.querySelector("#withdrawals-pending-only");
+if (withdrawalsPendingCheckbox) {
+  withdrawalsPendingCheckbox.addEventListener("change", event => {
+    filters.withdrawalsPendingOnly = event.target.checked;
+    renderWithdrawals();
+  });
+}
+
+async function addItem(category, name, description, quantity) {
+  const trimmedName = name.trim();
+  const trimmedDescription = description.trim();
+  const parsedQuantity = parseInt(quantity, 10);
+
+  if (!trimmedName || !trimmedDescription || Number.isNaN(parsedQuantity) || parsedQuantity <= 0) {
+    alert("Preencha todos os campos com valores válidos.");
+    return;
+  }
+
+  let duplicated = false;
+  try {
+    duplicated = await checkDuplicateItemName(category, trimmedName);
+  } catch (error) {
+    console.error("Erro ao verificar duplicidade de itens:", error);
+    alert("Não foi possível validar o item. Tente novamente.");
+    return;
+  }
+  if (duplicated) {
+    alert("Já existe um item cadastrado com esse nome nesta categoria.");
+    return;
+  }
+
   const transaction = db.transaction(["items"], "readwrite");
   const itemsStore = transaction.objectStore("items");
 
   itemsStore.add({
     category,
-    name,
-    description,
-    quantity: parseInt(quantity, 10),
+    name: trimmedName,
+    description: trimmedDescription,
+    quantity: parsedQuantity,
   });
 
   transaction.oncomplete = () => {
@@ -60,6 +169,38 @@ function addItem(category, name, description, quantity) {
     if (category === "Ferramentas") renderTools();
     populateItemDropdown();
   };
+
+  transaction.onerror = event => {
+    console.error("Erro ao salvar item:", event.target.error);
+  };
+}
+
+function checkDuplicateItemName(category, name) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(["items"], "readonly");
+    const itemsStore = transaction.objectStore("items");
+    let found = false;
+
+    const request = itemsStore.openCursor();
+    request.onsuccess = event => {
+      const cursor = event.target.result;
+      if (!cursor) {
+        if (!found) resolve(false);
+        return;
+      }
+
+      const item = cursor.value;
+      if (item.category === category && item.name.toLowerCase() === name.toLowerCase()) {
+        found = true;
+        resolve(true);
+        return;
+      }
+
+      cursor.continue();
+    };
+
+    request.onerror = () => reject(request.error);
+  });
 }
 
 document.querySelector("#add-stock-form").addEventListener("submit", event => {
@@ -81,27 +222,43 @@ document.querySelector("#add-tools-form").addEventListener("submit", event => {
 });
 
 function renderStock() {
-  renderItems("Estoque", "#stock-table tbody");
-  
+  renderItems("Estoque", "#stock-table tbody", filters.stock);
 }
 
 function renderTools() {
-  renderItems("Ferramentas", "#tools-table tbody");
+  renderItems("Ferramentas", "#tools-table tbody", filters.tools);
 }
 
-function renderItems(category, tableSelector) {
+function renderItems(category, tableSelector, searchTerm = "") {
   const transaction = db.transaction(["items"], "readonly");
   const itemsStore = transaction.objectStore("items");
   const tableBody = document.querySelector(tableSelector);
   tableBody.innerHTML = "";
+  const normalizedSearch = normalizeSearchTerm(searchTerm);
+  let hasResults = false;
 
   itemsStore.openCursor().onsuccess = event => {
     const cursor = event.target.result;
     if (cursor) {
       const item = cursor.value;
       if (item.category === category) {
+        const matchesSearch = itemMatchesSearch(item, normalizedSearch, [
+          "name",
+          "description",
+          "quantity",
+        ]);
+
+        if (!matchesSearch) {
+          cursor.continue();
+          return;
+        }
+
         const tr = document.createElement("tr");
         tr.dataset.id = item.id;
+
+        if (isLowStock(item.quantity, LOW_STOCK_THRESHOLD)) {
+          tr.classList.add("low-stock");
+        }
 
         ["name", "description", "quantity"].forEach(key => {
           const td = document.createElement("td");
@@ -111,8 +268,9 @@ function renderItems(category, tableSelector) {
         });
 
         const tdStatus = document.createElement("td");
-        tdStatus.textContent = item.quantity > 0 ? "Disponível" : "Indisponível";
-        tdStatus.className = item.quantity > 0 ? "available" : "unavailable";
+        const { label: statusLabel, className: statusClass } = getItemStatus(item.quantity);
+        tdStatus.textContent = statusLabel;
+        tdStatus.className = statusClass;
         tr.appendChild(tdStatus);
 
         // Botão para editar
@@ -131,6 +289,7 @@ function renderItems(category, tableSelector) {
 
         tr.appendChild(tdAction);
         tableBody.appendChild(tr);
+        hasResults = true;
       }
       cursor.continue();
     }
@@ -138,6 +297,10 @@ function renderItems(category, tableSelector) {
 
   transaction.oncomplete = () => {
     attachEditButtons(category, tableSelector);
+    if (!hasResults) {
+      showEmptyState(tableBody, "Nenhum item encontrado.");
+    }
+    updateSummary();
   };
 }
 
@@ -150,6 +313,7 @@ function removeItem(itemId, category) {
   transaction.oncomplete = () => {
     if (category === "Estoque") renderStock();
     if (category === "Ferramentas") renderTools();
+    populateItemDropdown();
   };
 }
 
@@ -177,22 +341,41 @@ function editItem(itemId, newDescription, newQuantity) {
   const itemRequest = itemsStore.get(itemId);
   itemRequest.onsuccess = () => {
     const item = itemRequest.result;
-    if (item) {
-      item.description = newDescription;
-      item.quantity = parseInt(newQuantity, 10);
-      itemsStore.put(item);
+      if (item) {
+        item.description = newDescription;
+        item.quantity = parseInt(newQuantity, 10);
+        itemsStore.put(item);
 
-      if (item.category === "Estoque") renderStock();
-      if (item.category === "Ferramentas") renderTools();
-    }
+        if (item.category === "Estoque") renderStock();
+        if (item.category === "Ferramentas") renderTools();
+        populateItemDropdown();
+      }
   };
 }
 
 document.querySelector("#register-withdrawal-form").addEventListener("submit", event => {
   event.preventDefault();
-  const personName = document.querySelector("#person-name").value;
-  const itemId = parseInt(document.querySelector("#withdraw-item-name").value, 10);
+  const personName = document.querySelector("#person-name").value.trim();
+  const itemSelect = document.querySelector("#withdraw-item-name");
+  const itemIdValue = itemSelect.value;
   const quantity = parseInt(document.querySelector("#withdraw-quantity").value, 10);
+
+  if (!personName) {
+    alert("Informe o nome da pessoa responsável pela retirada.");
+    return;
+  }
+
+  if (!itemIdValue) {
+    alert("Selecione um item válido para a retirada.");
+    return;
+  }
+
+  if (Number.isNaN(quantity) || quantity <= 0) {
+    alert("Informe uma quantidade válida para a retirada.");
+    return;
+  }
+
+  const itemId = parseInt(itemIdValue, 10);
 
   const transaction = db.transaction(["items", "withdrawals"], "readwrite");
   const itemsStore = transaction.objectStore("items");
@@ -227,6 +410,7 @@ document.querySelector("#register-withdrawal-form").addEventListener("submit", e
   };
 
   event.target.reset();
+  itemSelect.value = "";
 });
 
 function renderWithdrawals() {
@@ -234,95 +418,56 @@ function renderWithdrawals() {
   const withdrawalsStore = transaction.objectStore("withdrawals");
   const tableBody = document.querySelector("#withdrawals-table tbody");
   tableBody.innerHTML = "";
+  let hasResults = false;
 
   withdrawalsStore.openCursor().onsuccess = event => {
     const cursor = event.target.result;
     if (cursor) {
       const withdrawal = cursor.value;
-      const tr = document.createElement("tr");
 
-      // Define a cor de fundo com base no status
-      tr.style.backgroundColor = withdrawal.status === "Devolvido" ? "lightgreen" : "lightcoral";
+      if (withdrawalMatchesFilters(withdrawal, filters.withdrawals, filters.withdrawalsPendingOnly)) {
+        const tr = document.createElement("tr");
+        tr.dataset.id = withdrawal.id;
+        tr.classList.add(withdrawal.status === "Devolvido" ? "returned" : "withdrawn");
 
-      ["personName", "itemName", "itemType", "quantity", "date", "status"].forEach(key => {
-        const td = document.createElement("td");
-        td.textContent = withdrawal[key];
-        tr.appendChild(td);
-      });
+        ["personName", "itemName", "itemType", "quantity", "date"].forEach(key => {
+          const td = document.createElement("td");
+          td.textContent = withdrawal[key];
+          tr.appendChild(td);
+        });
 
-      const tdAction = document.createElement("td");
+        const statusTd = document.createElement("td");
+        statusTd.textContent = withdrawal.status;
+        statusTd.classList.add(withdrawal.status === "Devolvido" ? "status-devolvido" : "status-retirado");
+        tr.appendChild(statusTd);
 
-      const returnButton = document.createElement("button");
-      returnButton.textContent = withdrawal.status === "Devolvido" ? "Devolvido" : "Devolver";
-      returnButton.disabled = withdrawal.status === "Devolvido";
-      returnButton.addEventListener("click", () => returnItem(withdrawal.id));
-      tdAction.appendChild(returnButton);
+        const tdAction = document.createElement("td");
 
-      const removeButton = document.createElement("button");
-      removeButton.textContent = "Remover";
-      removeButton.style.backgroundColor = "red";
-      removeButton.style.color = "white";
-      removeButton.style.border = "none";
-      removeButton.style.padding = "0.5em";
-      removeButton.style.marginLeft = "0.5em";
-      removeButton.style.borderRadius = "5px";
-      removeButton.addEventListener("click", () => removeWithdrawal(withdrawal.id));
-      tdAction.appendChild(removeButton);
+        const returnButton = document.createElement("button");
+        returnButton.textContent = withdrawal.status === "Devolvido" ? "Devolvido" : "Devolver";
+        returnButton.disabled = withdrawal.status === "Devolvido";
+        returnButton.addEventListener("click", () => returnItem(withdrawal.id));
+        tdAction.appendChild(returnButton);
 
-      tr.appendChild(tdAction);
-      tableBody.appendChild(tr);
+        const removeButton = document.createElement("button");
+        removeButton.textContent = "Remover";
+        removeButton.classList.add("remove-btn");
+        removeButton.addEventListener("click", () => removeWithdrawal(withdrawal.id));
+        tdAction.appendChild(removeButton);
+
+        tr.appendChild(tdAction);
+        tableBody.appendChild(tr);
+        hasResults = true;
+      }
       cursor.continue();
     }
   };
 
   transaction.oncomplete = () => {
-    attachEditWithdrawalButtons();
-  };
-}
-
-function attachEditWithdrawalButtons() {
-  const table = document.querySelector("#withdrawals-table");
-  table.querySelectorAll(".edit-withdrawal-btn").forEach(button => {
-    button.addEventListener("click", () => {
-      const row = button.closest("tr");
-      const withdrawalId = parseInt(row.dataset.id, 10);
-      const newQuantity = prompt("Digite a nova quantidade retirada:", row.querySelector(".quantity").textContent);
-
-      if (newQuantity !== null) {
-        const isDevolution = confirm("Esta edição refere-se a uma devolução?");
-        editWithdrawal(withdrawalId, parseInt(newQuantity, 10), isDevolution);
-      }
-    });
-  });
-}
-
-function editWithdrawal(withdrawalId, newQuantity, isDevolution) {
-  const transaction = db.transaction(["withdrawals", "items"], "readwrite");
-  const withdrawalsStore = transaction.objectStore("withdrawals");
-  const itemsStore = transaction.objectStore("items");
-
-  const withdrawalRequest = withdrawalsStore.get(withdrawalId);
-
-  withdrawalRequest.onsuccess = () => {
-    const withdrawal = withdrawalRequest.result;
-    const itemRequest = itemsStore.get(withdrawal.itemId);
-
-    itemRequest.onsuccess = () => {
-      const item = itemRequest.result;
-
-      if (isDevolution) {
-        item.quantity += withdrawal.quantity; // Devolver a quantidade
-        withdrawal.status = "Devolvido";
-      }
-
-      withdrawal.quantity = newQuantity;
-      itemsStore.put(item);
-      withdrawalsStore.put(withdrawal);
-
-      renderWithdrawals();
-      renderStock();
-      renderTools();
-    };
+    if (!hasResults) {
+      showEmptyState(tableBody, "Nenhum registro encontrado.");
+    }
+    updateSummary();
   };
 }
 
@@ -345,7 +490,11 @@ function returnItem(withdrawalId) {
       itemsStore.put(item);
 
       renderWithdrawals();
-      renderStock();
+      if (item.category === "Estoque") {
+        renderStock();
+      } else {
+        renderTools();
+      }
     };
   };
 }
@@ -365,7 +514,15 @@ function populateItemDropdown() {
   const itemsStore = transaction.objectStore("items");
   const dropdown = document.querySelector("#withdraw-item-name");
 
+  const previousValue = dropdown.value;
   dropdown.innerHTML = ""; // Limpar opções anteriores
+
+  const placeholderOption = document.createElement("option");
+  placeholderOption.value = "";
+  placeholderOption.textContent = "Selecione um item";
+  placeholderOption.disabled = true;
+  placeholderOption.selected = true;
+  dropdown.appendChild(placeholderOption);
 
   itemsStore.openCursor().onsuccess = event => {
     const cursor = event.target.result;
@@ -376,6 +533,21 @@ function populateItemDropdown() {
       option.textContent = item.name;
       dropdown.appendChild(option);
       cursor.continue();
+    }
+  };
+
+  transaction.oncomplete = () => {
+    if (previousValue && dropdown.querySelector(`option[value="${previousValue}"]`)) {
+      dropdown.value = previousValue;
+    } else {
+      dropdown.value = "";
+    }
+
+    const submitButton = document.querySelector("#register-withdrawal-form button[type="submit"]");
+    if (submitButton) {
+      const hasItems = dropdown.options.length > 1;
+      submitButton.disabled = !hasItems;
+      submitButton.title = hasItems ? "" : "Cadastre itens para permitir retiradas.";
     }
   };
 }
@@ -406,6 +578,66 @@ function exportStock() {
     }
   };
 }
+function showEmptyState(tableBody, message) {
+  const emptyRow = document.createElement("tr");
+  const emptyCell = document.createElement("td");
+  const columns = tableBody.closest("table").querySelectorAll("th").length || 1;
+  emptyCell.colSpan = columns;
+  emptyCell.textContent = message;
+  emptyCell.classList.add("empty-state");
+  emptyRow.appendChild(emptyCell);
+  tableBody.appendChild(emptyRow);
+}
+
+function getAllRecords(storeName) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([storeName], "readonly");
+    const store = transaction.objectStore(storeName);
+    const results = [];
+
+    store.openCursor().onsuccess = event => {
+      const cursor = event.target.result;
+      if (cursor) {
+        results.push(cursor.value);
+        cursor.continue();
+      } else {
+        resolve(results);
+      }
+    };
+
+    transaction.onerror = () => reject(transaction.error);
+  });
+}
+
+async function updateSummary() {
+  if (!db) return;
+
+  const [items, withdrawals] = await Promise.all([
+    getAllRecords("items"),
+    getAllRecords("withdrawals"),
+  ]);
+
+  const summary = calculateInventorySummary(items, withdrawals, LOW_STOCK_THRESHOLD);
+
+  const summaryMap = {
+    "stock-total-items": summary.stock.count,
+    "stock-total-quantity": summary.stock.quantity,
+    "stock-low-count": summary.stock.low,
+    "tools-total-items": summary.tools.count,
+    "tools-total-quantity": summary.tools.quantity,
+    "tools-low-count": summary.tools.low,
+    "withdrawals-total": summary.withdrawals.total,
+    "withdrawals-pending": summary.withdrawals.pending,
+  };
+
+  Object.entries(summaryMap).forEach(([id, value]) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.textContent = value;
+    }
+  });
+}
+
 function saveStockAsJSON() {
   const transaction = db.transaction(["items"], "readonly");
   const itemsStore = transaction.objectStore("items");

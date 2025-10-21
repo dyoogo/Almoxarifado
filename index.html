@@ -8,9 +8,34 @@
 </head>
 <body class="light-mode">
   <header>
-    <h1>Gerenciamento de Almoxarifado</h1>
-    <a href="estoque.html"><button>Gerenciar Estoque</button></a>
+    <div class="header-content">
+      <h1>Gerenciamento de Almoxarifado</h1>
+      <div class="header-actions">
+        <button id="toggle-theme" type="button" aria-label="Alternar entre os modos claro e escuro">Modo Escuro</button>
+        <a class="primary-link" href="estoque.html">Visualizar Estoque Público</a>
+      </div>
+    </div>
   </header>
+
+  <section class="dashboard-metrics" aria-label="Resumo do inventário">
+    <article class="metric-card">
+      <h3>Estoque</h3>
+      <p><span id="stock-total-items">0</span> itens cadastrados</p>
+      <p><span id="stock-total-quantity">0</span> unidades disponíveis</p>
+      <p class="metric-warning"><span id="stock-low-count">0</span> itens com estoque baixo</p>
+    </article>
+    <article class="metric-card">
+      <h3>Ferramentas</h3>
+      <p><span id="tools-total-items">0</span> ferramentas cadastradas</p>
+      <p><span id="tools-total-quantity">0</span> unidades disponíveis</p>
+      <p class="metric-warning"><span id="tools-low-count">0</span> ferramentas com estoque baixo</p>
+    </article>
+    <article class="metric-card">
+      <h3>Retiradas</h3>
+      <p><span id="withdrawals-total">0</span> registros</p>
+      <p><span id="withdrawals-pending">0</span> retiradas pendentes</p>
+    </article>
+  </section>
 
   <nav>
     <button class="tab-button active" data-tab="stock-tab">Estoque</button>
@@ -35,7 +60,10 @@
         <button type="submit">Cadastrar Estoque</button>
       </form>
       <h3>Itens do Estoque</h3>
-      <button id="export-stock">Exportar Estoque</button>
+      <div class="table-actions">
+        <input type="search" id="stock-search" placeholder="Buscar por nome ou descrição" aria-label="Buscar itens do estoque">
+        <button id="export-stock" type="button">Exportar Estoque</button>
+      </div>
       <table id="stock-table">
         <thead>
           <tr>
@@ -66,6 +94,9 @@
         <button type="submit">Cadastrar Ferramenta</button>
       </form>
       <h3>Ferramentas Cadastradas</h3>
+      <div class="table-actions">
+        <input type="search" id="tools-search" placeholder="Buscar por nome ou descrição" aria-label="Buscar ferramentas">
+      </div>
       <table id="tools-table">
         <thead>
           <tr>
@@ -98,6 +129,13 @@
         <button type="submit">Registrar Retirada</button>
       </form>
       <h3>Itens Retirados</h3>
+      <div class="table-actions">
+        <input type="search" id="withdrawals-search" placeholder="Buscar por pessoa ou item" aria-label="Buscar retiradas">
+        <label class="inline-checkbox">
+          <input type="checkbox" id="withdrawals-pending-only">
+          Mostrar apenas pendentes
+        </label>
+      </div>
       <table id="withdrawals-table">
         <thead>
           <tr>
@@ -115,6 +153,7 @@
     </section>
   </main>
 
+  <script src="app_utils.js"></script>
   <script src="improved_app.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </body>
