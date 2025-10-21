@@ -4,6 +4,8 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
   padding: 0;
+  background: var(--body-bg);
+  color: var(--body-text-color);
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -11,19 +13,52 @@ header {
   background: var(--header-bg);
   color: var(--header-color);
   padding: 1em;
-  text-align: center;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  align-items: center;
+}
+
+.header-content h1 {
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1em;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.primary-link {
+  background: var(--link-bg);
+  color: var(--link-color);
+  padding: 0.7em 1em;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.primary-link:hover {
+  background: var(--link-hover-bg);
+  transform: translateY(-1px);
 }
 
 nav {
   display: flex;
   justify-content: center;
+  gap: 1em;
   background: var(--nav-bg);
-  padding: 0.5em;
+  padding: 0.75em;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.tab-button { 
+.tab-button {
   background: var(--button-bg);
   border: none;
   color: var(--button-color);
@@ -57,7 +92,7 @@ button {
   background: var(--button-bg);
   color: var(--button-color);
   border: none;
-  padding: 0.7em 1em;
+  padding: 0.7em 1.1em;
   font-size: 1em;
   border-radius: 5px;
   cursor: pointer;
@@ -68,15 +103,21 @@ button:hover {
   background: var(--button-hover-bg);
 }
 
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 form {
   display: flex;
   flex-direction: column;
   gap: 1em;
-  max-width: 400px;
+  max-width: 480px;
   margin: 1em auto;
   padding: 1.5em;
   border-radius: 8px;
   background: var(--form-bg);
+  border: 1px solid var(--form-border);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
@@ -118,12 +159,97 @@ tbody tr:nth-child(odd) {
 tbody tr:nth-child(even) {
   background: var(--table-row-even-bg);
 }
-section
-{
-  background: var(--sectio-active-bg);
+
+section {
+  background: var(--section-bg);
+}
+
+.table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1em;
+  align-items: center;
+  justify-content: flex-start;
+  margin: 1em 0;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 1.5em 0;
+  color: var(--body-text-color);
+  font-style: italic;
+}
+
+.table-actions input[type="search"] {
+  max-width: 320px;
+}
+
+.inline-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-size: 0.95em;
+}
+
+.dashboard-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1em;
+  padding: 1.5em;
+}
+
+.metric-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 1.2em;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+}
+
+.metric-card h3 {
+  margin-top: 0;
+  color: var(--header-color);
+}
+
+.metric-warning {
+  color: var(--warning-color);
+  font-weight: 600;
+}
+
+.low-stock {
+  background: var(--low-stock-bg) !important;
+}
+
+.status-retirado {
+  color: var(--status-retirado-color);
+  font-weight: 600;
+}
+
+.status-devolvido {
+  color: var(--status-devolvido-color);
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    align-items: flex-start;
+  }
+
+  nav {
+    flex-wrap: wrap;
+  }
+}
+
+@media (min-width: 769px) {
+  .header-content {
+    flex-direction: row;
+    justify-content: space-between;
+  }
 }
 /* Modos Claro e Escuro */
 :root {
+  --body-bg: #f0f2f5;
+  --body-text-color: #1f2933;
   --header-bg: #ffffff;
   --header-color: #222222;
   --nav-bg: #f5f5f5;
@@ -132,7 +258,7 @@ section
   --button-hover-bg: #45a049;
   --button-active-bg: #388e3c;
   --form-bg: #ffffff;
-  --form-border: #000000;
+  --form-border: #e0e0e0;
   --input-border: #cccccc;
   --input-focus-border: #4caf50;
   --table-border: #dddddd;
@@ -140,25 +266,46 @@ section
   --table-header-color: #222222;
   --table-row-odd-bg: #ffffff;
   --table-row-even-bg: #f9f9f9;
+  --section-bg: #ffffff;
+  --card-bg: #ffffff;
+  --card-border: #e0e0e0;
+  --warning-color: #d84315;
+  --low-stock-bg: #fff3e0;
+  --link-bg: #1976d2;
+  --link-hover-bg: #115293;
+  --link-color: #ffffff;
+  --status-retirado-color: #c62828;
+  --status-devolvido-color: #2e7d32;
 }
 
 body.dark-mode {
-  --header-bg: #000000;
+  --body-bg: #0b1117;
+  --body-text-color: #e3f2fd;
+  --header-bg: #101820;
   --header-color: #ffffff;
-  --nav-bg: #000000;
+  --nav-bg: #0f1419;
   --button-bg: #5c6bc0;
   --button-hover-bg: #3f51b5;
   --button-active-bg: #3949ab;
-  --form-bg: #000000;
-  --form-border: #000000;
-  --input-border: #000000;
+  --form-bg: #101820;
+  --form-border: #1f2a33;
+  --input-border: #1f2a33;
   --input-focus-border: #5c6bc0;
-  --table-border: #000000;
-  --table-header-bg: #000000;
+  --table-border: #263238;
+  --table-header-bg: #1c252d;
   --table-header-color: #ffffff;
-  --table-row-odd-bg: #b20a0a;
-  --table-row-even-bg: #000000;
-  --sectio-active-bg: #000000;
+  --table-row-odd-bg: #172026;
+  --table-row-even-bg: #101820;
+  --section-bg: #0f1419;
+  --card-bg: #172026;
+  --card-border: #22303a;
+  --warning-color: #ffab91;
+  --low-stock-bg: rgba(255, 143, 0, 0.25);
+  --link-bg: #64b5f6;
+  --link-hover-bg: #42a5f5;
+  --link-color: #0f1419;
+  --status-retirado-color: #ef9a9a;
+  --status-devolvido-color: #81c784;
 }
 .remove-btn {
   background-color: red;
