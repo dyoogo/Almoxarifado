@@ -7,12 +7,21 @@
   <link rel="stylesheet" href="improved_styles.css">
 </head>
 <body class="light-mode">
-  <header>
-    <h1>Gerenciamento de Almoxarifado</h1>
-    <a href="estoque.html"><button>Gerenciar Estoque</button></a>
+  <header class="app-header">
+    <div class="header-content">
+      <div class="brand">
+        <img src="logo.jpeg" alt="Logo do almoxarifado" class="brand-logo">
+        <div class="brand-text">
+          <span class="eyebrow">Sistema Integrado</span>
+          <h1>Gerenciamento de Almoxarifado</h1>
+          <p>Organize entradas, retiradas e ferramentas em um só painel moderno.</p>
+        </div>
+      </div>
+      <a href="estoque.html" class="primary-link">Acessar Relatório Completo</a>
+    </div>
   </header>
 
-  <nav>
+  <nav class="main-nav">
     <button class="tab-button active" data-tab="stock-tab">Estoque</button>
     <button class="tab-button" data-tab="tools-tab">Ferramentas</button>
     <button class="tab-button" data-tab="withdrawals-tab">Retirados</button>
@@ -21,99 +30,151 @@
   <main>
     <!-- Estoque -->
     <section id="stock-tab" class="tab-content active">
-      <h2>Cadastro de Itens do Estoque</h2>
-      <form id="add-stock-form">
-        <label for="stock-name">Nome:</label>
-        <input type="text" id="stock-name" placeholder="Ex: Parafuso" required>
-        
-        <label for="stock-description">Descrição:</label>
-        <textarea id="stock-description" placeholder="Ex: Parafuso de aço inoxidável" required></textarea>
-        
-        <label for="stock-quantity">Quantidade:</label>
-        <input type="number" id="stock-quantity" min="1" placeholder="Ex: 50" required>
-        
-        <button type="submit">Cadastrar Estoque</button>
-      </form>
-      <h3>Itens do Estoque</h3>
-      <button id="export-stock">Exportar Estoque</button>
-      <table id="stock-table">
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>Descrição</th>
-            <th>Quantidade</th>
-            <th>Status</th>
-            <th>Ação</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+      <div class="section-header">
+        <h2>Cadastro de Itens do Estoque</h2>
+        <p>Mantenha o estoque atualizado e visualize rapidamente o status de cada item.</p>
+      </div>
+      <div class="section-grid">
+        <div class="card form-card">
+          <form id="add-stock-form">
+            <label for="stock-name">Nome:</label>
+            <input type="text" id="stock-name" placeholder="Ex: Parafuso" required>
+
+            <label for="stock-description">Descrição:</label>
+            <textarea id="stock-description" placeholder="Ex: Parafuso de aço inoxidável" required></textarea>
+
+            <label for="stock-quantity">Quantidade:</label>
+            <input type="number" id="stock-quantity" min="1" placeholder="Ex: 50" required>
+
+            <button type="submit" class="primary-button">Cadastrar Estoque</button>
+          </form>
+        </div>
+        <div class="card table-card">
+          <div class="card-header">
+            <div>
+              <h3>Itens do Estoque</h3>
+              <span class="card-subtitle">Acompanhe disponibilidade e atualize quando necessário.</span>
+            </div>
+            <button id="export-stock" class="ghost-button">Exportar</button>
+          </div>
+          <div class="table-wrapper">
+            <table id="stock-table">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Descrição</th>
+                  <th>Quantidade</th>
+                  <th>Status</th>
+                  <th>Ação</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- Ferramentas -->
     <section id="tools-tab" class="tab-content">
-      <h2>Cadastro de Ferramentas</h2>
-      <form id="add-tools-form">
-        <label for="tool-name">Nome:</label>
-        <input type="text" id="tool-name" placeholder="Ex: Martelo" required>
-        
-        <label for="tool-description">Descrição:</label>
-        <textarea id="tool-description" placeholder="Ex: Martelo com cabo de borracha" required></textarea>
-        
-        <label for="tool-quantity">Quantidade:</label>
-        <input type="number" id="tool-quantity" min="1" placeholder="Ex: 10" required>
-        
-        <button type="submit">Cadastrar Ferramenta</button>
-      </form>
-      <h3>Ferramentas Cadastradas</h3>
-      <table id="tools-table">
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>Descrição</th>
-            <th>Quantidade</th>
-            <th>Status</th>
-            <th>Ação</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+      <div class="section-header">
+        <h2>Cadastro de Ferramentas</h2>
+        <p>Controle empréstimos, devoluções e estado de cada ferramenta.</p>
+      </div>
+      <div class="section-grid">
+        <div class="card form-card">
+          <form id="add-tools-form">
+            <label for="tool-name">Nome:</label>
+            <input type="text" id="tool-name" placeholder="Ex: Martelo" required>
+
+            <label for="tool-description">Descrição:</label>
+            <textarea id="tool-description" placeholder="Ex: Martelo com cabo de borracha" required></textarea>
+
+            <label for="tool-quantity">Quantidade:</label>
+            <input type="number" id="tool-quantity" min="1" placeholder="Ex: 10" required>
+
+            <button type="submit" class="primary-button">Cadastrar Ferramenta</button>
+          </form>
+        </div>
+        <div class="card table-card">
+          <div class="card-header">
+            <div>
+              <h3>Ferramentas Cadastradas</h3>
+              <span class="card-subtitle">Consulte rapidamente o status das ferramentas.</span>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table id="tools-table">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Descrição</th>
+                  <th>Quantidade</th>
+                  <th>Status</th>
+                  <th>Ação</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- Retirados -->
     <section id="withdrawals-tab" class="tab-content">
-      <h2>Registrar Retirada</h2>
-      <form id="register-withdrawal-form">
-        <label for="person-name">Nome da Pessoa:</label>
-        <input type="text" id="person-name" placeholder="Ex: Diogo Moura" required>
-        
-        <label for="withdraw-item-name">Item:</label>
-        <select id="withdraw-item-name" required>
-          <option value="" disabled selected>Selecione um item</option>
-        </select>
+      <div class="section-header">
+        <h2>Registrar Retirada</h2>
+        <p>Controle movimentações e garanta o retorno de itens com alertas visuais.</p>
+      </div>
+      <div class="section-grid">
+        <div class="card form-card">
+          <form id="register-withdrawal-form">
+            <label for="person-name">Nome da Pessoa:</label>
+            <input type="text" id="person-name" placeholder="Ex: Diogo Moura" required>
 
-        <label for="withdraw-quantity">Quantidade:</label>
-        <input type="number" id="withdraw-quantity" min="1" placeholder="Ex: 20" required>
-        
-        <button type="submit">Registrar Retirada</button>
-      </form>
-      <h3>Itens Retirados</h3>
-      <table id="withdrawals-table">
-        <thead>
-          <tr>
-            <th>Nome da Pessoa</th>
-            <th>Item</th>
-            <th>Tipo</th>
-            <th>Quantidade</th>
-            <th>Data</th>
-            <th>Status</th>
-            <th>Ação</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+            <label for="withdraw-item-name">Item:</label>
+            <select id="withdraw-item-name" required>
+              <option value="" disabled selected>Selecione um item</option>
+            </select>
+
+            <label for="withdraw-quantity">Quantidade:</label>
+            <input type="number" id="withdraw-quantity" min="1" placeholder="Ex: 20" required>
+
+            <button type="submit" class="primary-button">Registrar Retirada</button>
+          </form>
+        </div>
+        <div class="card table-card">
+          <div class="card-header">
+            <div>
+              <h3>Itens Retirados</h3>
+              <span class="card-subtitle">Visualize retiradas recentes e acompanhe devoluções.</span>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table id="withdrawals-table">
+              <thead>
+                <tr>
+                  <th>Nome da Pessoa</th>
+                  <th>Item</th>
+                  <th>Tipo</th>
+                  <th>Quantidade</th>
+                  <th>Data</th>
+                  <th>Status</th>
+                  <th>Ação</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </section>
   </main>
+
+  <footer class="app-footer">
+    <p>© 2024 Almoxarifado Municipal. Controle inteligente do seu patrimônio.</p>
+  </footer>
 
   <script src="improved_app.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
